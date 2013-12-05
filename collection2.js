@@ -1,6 +1,7 @@
 // Extend the schema options allowed by SimpleSchema
 SimpleSchema.extendOptions({
   unique: Match.Optional(Boolean),
+  uniquePerUser: Match.Optional(Boolean),
   autoValue: Match.Optional(Function),
   denyInsert: Match.Optional(Boolean),
   denyUpdate: Match.Optional(Boolean)
@@ -177,7 +178,7 @@ Meteor.Collection2 = function(name, options) {
     if ((val === void 0 || val === null) && def.optional) {
       return true;
     }
-    if (def.unique) {
+    if (def.unique || def.uniquePerUser) {
       test = {};
       test[key] = val;
       if (op !== null) { //updating
@@ -205,6 +206,11 @@ Meteor.Collection2 = function(name, options) {
         //if first count > second count, not unique
         return totalUsing > usingAndBeingUpdated ? "notUnique" : true;
       }
+
+      if (def.uniquePerUser) {
+          test.owner = Meteor.userId()
+      }
+
       return self._collection.findOne(test) ? "notUnique" : true;
     }
     return true;
